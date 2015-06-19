@@ -1,6 +1,6 @@
-Opauth-GitHub
+Opauth-Truenth
 =============
-[Opauth][1] strategy for GitHub authentication.
+[Opauth][1] strategy for Truenth authentication.
 
 Implemented based on http://developer.github.com/v3/oauth/ using OAuth2.
 
@@ -10,19 +10,18 @@ Demo: http://opauth.org/#github
 
 Getting started
 ----------------
-1. Install Opauth-GitHub:
+1. Install Opauth-Truenth:
    ```bash
    cd path_to_opauth/Strategy
-   git clone git://github.com/uzyn/opauth-github.git GitHub
+   git clone git://github.com/uzyn/opauth-truenth.git Truenth
    ```
 
-2. Register a GitHub application at https://github.com/settings/applications/new
-   - Enter URL as your application URL (this can be outside of Opauth)
-   - Callback URL: enter `http://path_to_opauth/github/oauth2callback`
+2. Register a Truenth application at <truenth-portal-url/client>
+   - Authorized URL: enter `http://path_to_opauth/truenth/oauth2callback`
    
-3. Configure Opauth-GitHub strategy with `client_id` and `client_secret`.
+3. Configure Opauth-Truenth strategy with `client_id` and `client_secret`.
 
-4. Direct user to `http://path_to_opauth/github` to authenticate
+4. Direct user to `http://path_to_opauth/truenth` to authenticate
 
 
 Strategy configuration
@@ -33,6 +32,9 @@ Required parameters:
 ```php
 <?php
 'GitHub' => array(
+	'authorize_url' => 'PORTAL AUTHORIZE URL',
+	'access_token_url' => 'PORTAL TOKEN URL',
+	'base_url' => 'PORTAL API URL',
 	'client_id' => 'YOUR CLIENT ID',
 	'client_secret' => 'YOUR CLIENT SECRET'
 )
@@ -43,7 +45,7 @@ Optional parameters:
 
 License
 ---------
-Opauth-GitHub is MIT Licensed  
-Copyright © 2012 U-Zyn Chua (http://uzyn.com)
+Opauth-Truenth is MIT Licensed  
+Copyright © 2015 University of Washington 
 
 [1]: https://github.com/uzyn/opauth

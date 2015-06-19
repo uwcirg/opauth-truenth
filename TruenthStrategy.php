@@ -5,8 +5,7 @@
  * 
  * More information on Opauth: http://opauth.org
  * 
- * @copyright    Copyright © 2012 U-Zyn Chua (http://uzyn.com)
- * @link         http://opauth.org
+ * @copyright    Copyright © 2015 University of Washington
  * @package      Opauth.TruenthStrategy
  * @license      MIT License
  */
