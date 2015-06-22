@@ -12,16 +12,20 @@ Getting started
 ----------------
 1. Install Opauth-Truenth:
    ```bash
-   cd path_to_opauth/Strategy
-   git clone git://github.com/uzyn/opauth-truenth.git Truenth
+   cd app/Plugin/Opauth/Strategy 
+   git clone https://github.com/uwcirg/opauth-truenth.git Truenth
    ```
 
-2. Register a Truenth application at <truenth-portal-url/client>
-   - Authorized URL: enter `http://path_to_opauth/truenth/oauth2callback`
+2. Register the Truenth application/intervention at the appropriate
+   Truenth Portal URL, i.e. `https://truenth-demo.cirg.washington.edu/client`
+   - Enter Authorized URL: (i.e. the callback URL for the
+     application/intervention being install i.e.
+     `http://fqdn/application-path/truenth/oauth2callback`
    
-3. Configure Opauth-Truenth strategy with `client_id` and `client_secret`.
+3. Configure Opauth-Truenth strategy with `client_id` and `client_secret` 
+   returned from the portal `/client` request.
 
-4. Direct user to `http://path_to_opauth/truenth` to authenticate
+4. Direct user to `http://fqdn/application-path/truenth` to authenticate
 
 
 Strategy configuration
