@@ -42,6 +42,7 @@ class TruenthStrategy extends OpauthStrategy{
 	 * Auth request
 	 */
 	public function request(){
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
 		$url = $this->strategy['authorize_url'];
 		$params = array(
 			'client_id' => $this->strategy['client_id'],
@@ -55,12 +56,14 @@ class TruenthStrategy extends OpauthStrategy{
 		}
 		
 		$this->clientGet($url, $params);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
 	}
 	
 	/**
 	 * Internal callback, after OAuth
 	 */
 	public function oauth2callback(){
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
 		if (array_key_exists('code', $_GET) && !empty($_GET['code'])){
 			$code = $_GET['code'];
 			$url = $this->strategy['access_token_url'];
@@ -73,10 +76,17 @@ class TruenthStrategy extends OpauthStrategy{
 			);
 			$response = $this->serverPost($url, $params, null, $headers);
 			
+            //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), response serverPost:' . print_r($response, true));           
+ 
 			$results = json_decode($response);
-			
+
+            //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), results from json_decode(response):' . print_r($results, true));           
+		
 			if (!empty($results) && !empty($results->access_token)){
+                //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), !empty($results) && !empty($results->access_token)');
+                CakeSession::write('OPAUTH_ACCESS_TOKEN', $results->access_token);
 				$userinfo = $this->userinfo($results->access_token);
+                //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), userinfo:' . print_r($userinfo, true));           
 				
 				$this->auth = array(
 					'uid' => $userinfo['id'],
@@ -92,12 +102,6 @@ class TruenthStrategy extends OpauthStrategy{
 				{
 					$this->auth['credentials']['refresh_token'] = $results->refresh_token;
 				}
-				
-				$this->mapProfile($userinfo, 'name', 'info.name');
-				$this->mapProfile($userinfo, 'email', 'info.email');
-				$this->mapProfile($userinfo, 'given_name', 'info.first_name');
-				$this->mapProfile($userinfo, 'family_name', 'info.last_name');
-				$this->mapProfile($userinfo, 'picture', 'info.image');
 				
 				$this->callback();
 			}
@@ -122,7 +126,8 @@ class TruenthStrategy extends OpauthStrategy{
 			
 			$this->errorCallback($error);
 		}
-	}
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
+	}// public function oauth2callback(){
 	
 	/**
 	 * Queries Truenth API for user info
@@ -131,7 +136,8 @@ class TruenthStrategy extends OpauthStrategy{
 	 * @return array Parsed JSON results
 	 */
 	private function userinfo($access_token){
-		$userinfo = $this->serverGet($this->strategy['base_url'] . 'me', array('access_token' => $access_token), null, $headers);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
+		$userinfo = $this->serverGet($this->strategy['base_url'] . 'me', array('access_token' => $access_token), null, $headers); // 'me' from flask; google uses this naming convention, as do others.
 		if (!empty($userinfo)){
 			return $this->recursiveGetObjectVars(json_decode($userinfo));
 		}
@@ -147,5 +153,35 @@ class TruenthStrategy extends OpauthStrategy{
 
 			$this->errorCallback($error);
 		}
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
+	}
+
+	/**
+	 * Queries Truenth demographics API
+	 *
+	 * @return JSON results
+	 */
+	public function demographicsInfo(){
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
+
+        $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+
+		$userinfo = $this->serverGet($this->strategy['base_url'] . 'demographics', array('access_token' => $access_token), null, $headers);
+		if (!empty($userinfo)){
+			return $userinfo;
+		}
+		else{
+			$error = array(
+				'code' => 'userinfo_error',
+				'message' => 'Failed when attempting to query demographics API',
+				'raw' => array(
+					'response' => $userinfo,
+					'headers' => $headers
+				)
+			);
+
+			$this->errorCallback($error);
+		}
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
 	}
 }
