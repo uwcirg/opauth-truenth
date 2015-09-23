@@ -43,13 +43,16 @@ class TruenthStrategy extends OpauthStrategy{
 	 */
 	public function request(){
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
+
 		$url = $this->strategy['authorize_url'];
 		$params = array(
 			'client_id' => $this->strategy['client_id'],
 			'redirect_uri' => $this->strategy['redirect_uri'],
+            'next' => Router::url("/", true),
 			'response_type' => 'code',
 			'scope' => $this->strategy['scope']
 		);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); url: ' . $url . '; params for strategy: ' . print_r($params, true));
 
 		foreach ($this->optionals as $key){
 			if (!empty($this->strategy[$key])) $params[$key] = $this->strategy[$key];
@@ -63,7 +66,7 @@ class TruenthStrategy extends OpauthStrategy{
 	 * Internal callback, after OAuth
 	 */
 	public function oauth2callback(){
-        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
 		if (array_key_exists('code', $_GET) && !empty($_GET['code'])){
 			$code = $_GET['code'];
 			$url = $this->strategy['access_token_url'];
@@ -128,6 +131,40 @@ class TruenthStrategy extends OpauthStrategy{
 		}
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
 	}// public function oauth2callback(){
+	
+	/**
+     * Generic CS to intervention callback. Note that you'll need to write this function name to the CS's clients table's callback_url field, eg https://p3p-dev.cirg.washington.edu/usa-self-mgmt/auth/truenth/eventcallback
+	 */
+	public function eventcallback(){
+
+        $signed_request = $_POST['signed_request'];
+
+        $signed_request = explode('.', $signed_request);
+
+        $sig = base64_decode(strtr($signed_request[0], '-_', '+/'));
+        // todo compare sig w/ data hashed via client_secret 
+        $data = base64_decode(strtr($signed_request[1], '-_', '+/'));
+
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); sig:' . $sig);
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . $data);
+
+        $data = json_decode($data, true);
+
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data after json_decode:' . print_r($data, true));
+        /** example
+            [issued_at] => 1442959000
+            [user_id] => 10015
+            [event] => logout
+            [algorithm] => HMAC-SHA256
+        */
+
+        if ($data['event'] == 'logout'){
+            // todo
+        }
+
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . print_r($data, true));
+
+    }// public function eventcallback
 	
 	/**
 	 * Queries Truenth API for user info
