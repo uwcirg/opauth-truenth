@@ -16,6 +16,7 @@
  * 
  * @package			Opauth.Truenth
  */
+App::uses('HttpSocket', 'Network/Http');
 class TruenthStrategy extends OpauthStrategy{
 	
 	/**
@@ -221,4 +222,36 @@ class TruenthStrategy extends OpauthStrategy{
 		}
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
 	}
+
+    public function set_questionniare($user_id, $data){
+
+        $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+
+        $HttpSocket = new HttpSocket();
+        $response = $HttpSocket->put(
+            implode(array($this->strategy['base_url'], 'assessment', '/', $user_id)),
+            json_encode($data),
+            array(
+                'header' => array(
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $access_token,
+                ),
+            )
+        );
+
+        if ($response->code == 200){
+            return $response->body;
+        }
+
+        $error = array(
+            'message' => 'Error submitting questionnaire response data',
+            'code' => $response->code,
+            'raw' => array(
+                'response' => $response,
+                'headers' => $response->headers,
+            ),
+        );
+        $this->errorCallback($error);
+    }
+
 }
