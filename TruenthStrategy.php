@@ -17,6 +17,7 @@
  * @package			Opauth.Truenth
  */
 App::uses('HttpSocket', 'Network/Http');
+App::uses('DatabaseSessionPlusUserId', 'Datasource/Session');
 class TruenthStrategy extends OpauthStrategy{
 	
 	/**
@@ -146,12 +147,12 @@ class TruenthStrategy extends OpauthStrategy{
         // todo compare sig w/ data hashed via client_secret 
         $data = base64_decode(strtr($signed_request[1], '-_', '+/'));
 
-        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); sig:' . $sig);
-        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . $data);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); sig:' . $sig);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . $data);
 
         $data = json_decode($data, true);
 
-        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data after json_decode:' . print_r($data, true));
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data after json_decode:' . print_r($data, true));
         /** example
             [issued_at] => 1442959000
             [user_id] => 10015
@@ -160,11 +161,14 @@ class TruenthStrategy extends OpauthStrategy{
         */
 
         if ($data['event'] == 'logout'){
-            // todo
-        }
+            //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data[event] == "logout"');
+            $sessionObj = new DatabaseSessionPlusUserId();
+            $deleteResult = $sessionObj->deleteByUserId($data['user_id']);
+            //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "(); just did logout, heres deleteResult: $deleteResult");
+         }
+        //else CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data[event] != "logout"');
 
-        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . print_r($data, true));
-
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); done.');
     }// public function eventcallback
 	
 	/**
