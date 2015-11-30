@@ -255,7 +255,16 @@ class TruenthStrategy extends OpauthStrategy{
                 'headers' => $response->headers,
             ),
         );
+
+        CakeLog::write(LOG_ERROR, print_r($error,1));
+
         $this->errorCallback($error);
+        switch ($response->code){
+            case 404:
+                throw new NotFoundException($error['message']);
+                break;
+        }
+        return $error;
     }
 
 }
