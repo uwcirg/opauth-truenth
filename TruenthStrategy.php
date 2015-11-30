@@ -244,7 +244,7 @@ class TruenthStrategy extends OpauthStrategy{
         );
 
         if ($response->code == 200){
-            return $response->body;
+            return json_decode($response->body, true);
         }
 
         $error = array(
