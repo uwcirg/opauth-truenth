@@ -68,7 +68,7 @@ class TruenthStrategy extends OpauthStrategy{
      * Internal callback, after OAuth
      */
     public function oauth2callback(){
-        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
+        // CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
         if (array_key_exists('code', $_GET) && !empty($_GET['code'])){
             $code = $_GET['code'];
             $url = $this->strategy['access_token_url'];
