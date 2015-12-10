@@ -162,20 +162,9 @@ class TruenthStrategy extends OpauthStrategy{
      */
     public function eventcallback(){
 
-        $signed_request = $_POST['signed_request'];
+        $data = self::validate_request($_POST['signed_request']);
 
-        $signed_request = explode('.', $signed_request);
-
-        $sig = base64_decode(strtr($signed_request[0], '-_', '+/'));
-        // todo compare sig w/ data hashed via client_secret
-        $data = base64_decode(strtr($signed_request[1], '-_', '+/'));
-
-        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); sig:' . $sig);
-        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . $data);
-
-        $data = json_decode($data, true);
-
-        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data after json_decode:' . print_r($data, true));
+        // CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data after json_decode:' . print_r($data, true));
         /** example
             [issued_at] => 1442959000
             [user_id] => 10015
