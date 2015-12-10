@@ -65,6 +65,29 @@ class TruenthStrategy extends OpauthStrategy{
     }
 
     /**
+     * Validate signed requests from central services and return JSON data if valid
+     */
+    public static function validate_request($signed_request){
+        list($encoded_sig, $encoded_data) = explode('.', $signed_request);
+
+        $decoded_data = base64_decode(strtr($encoded_data, '-_', '+/'));
+
+        $correct_decoded_sig = hash_hmac(
+            'sha256',
+            $encoded_data,
+            Configure::read('Opauth.Strategy.Truenth.client_secret'),
+            true
+        );
+        $correct_encoded_sig = strtr(base64_encode($correct_decoded_sig), '+/', '-_');
+
+        if ($correct_encoded_sig !== $encoded_sig){
+            CakeLog::write(LOG_ERROR, 'Request signature invalid');
+            return false;
+        }
+        return json_decode($decoded_data, true);
+    }
+
+    /**
      * Internal callback, after OAuth
      */
     public function oauth2callback(){
