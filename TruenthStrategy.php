@@ -50,7 +50,7 @@ class TruenthStrategy extends OpauthStrategy{
         $params = array(
             'client_id' => $this->strategy['client_id'],
             'redirect_uri' => $this->strategy['redirect_uri'],
-            'next' => Router::url("/", true),
+            //'next' => Router::url("/", true),
             'response_type' => 'code',
             'scope' => $this->strategy['scope']
         );
