@@ -245,7 +245,12 @@ class TruenthStrategy extends OpauthStrategy{
 
         $HttpSocket = new HttpSocket();
         $response = $HttpSocket->put(
-            implode(array($this->strategy['base_url'], 'assessment', '/', $user_id, '/',)),
+            implode(array(
+                $this->strategy['base_url'],
+                'patient', '/',
+                $user_id, '/',
+                'assessment',
+            )),
             json_encode($data),
             array(
                 'header' => array(
