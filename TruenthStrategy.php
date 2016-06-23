@@ -214,7 +214,6 @@ class TruenthStrategy extends OpauthStrategy{
      * Queries Truenth demographics API
      *
      * @return JSON results
-     */
     public function demographicsInfo(){
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
 
@@ -228,6 +227,36 @@ class TruenthStrategy extends OpauthStrategy{
             $error = array(
                 'code' => 'userinfo_error',
                 'message' => 'Failed when attempting to query demographics API',
+                'raw' => array(
+                    'response' => $userinfo,
+                    'headers' => $headers
+                )
+            );
+
+            $this->errorCallback($error);
+        }
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
+    }
+     */
+
+    /**
+     * Queries Truenth demographics API
+     * @param $apiName eg 'demographics' | 'patient/123/procedure'
+     * @return JSON results
+     */
+    public function coreData($apiName){
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "$apiName)");
+
+        $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+
+        $userinfo = $this->serverGet($this->strategy['base_url'] . $apiName, array('access_token' => $access_token), null, $headers);
+        if (!empty($userinfo)){
+            return $userinfo;
+        }
+        else{
+            $error = array(
+                'code' => 'userinfo_error',
+                'message' => "Failed when attempting to query $apiName API",
                 'raw' => array(
                     'response' => $userinfo,
                     'headers' => $headers
