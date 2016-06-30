@@ -40,6 +40,8 @@ class TruenthStrategy extends OpauthStrategy{
         'scope' => 'email'
     );
 
+    public $hasRefresh = true;
+
     /**
      * Auth request
      */
@@ -245,7 +247,7 @@ class TruenthStrategy extends OpauthStrategy{
      * @return JSON results
      */
     public function coreData($apiName){
-        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "$apiName)");
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "($apiName)");
 
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 
