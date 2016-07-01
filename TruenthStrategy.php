@@ -270,6 +270,47 @@ class TruenthStrategy extends OpauthStrategy{
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
     }
 
+    public function get_questionniare_responses($user_id, $instrument_code=null){
+        $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+
+        $url = array(
+            $this->strategy['base_url'],
+            'patient/',
+            $user_id,
+            '/assessment',
+        );
+
+        if ($instrument_code){
+            array_push($url, '/', $instrument_code);
+        }
+
+
+        $response = @$this->serverGet(
+            implode($url),
+            array('access_token' => $access_token),
+            null,
+            $headers
+        );
+
+        if ($response === false){
+            $error = array(
+                'message' => "Error retrieving questionnaire ($instrument_code) response data for user $user_id",
+                'code' => $response,
+                'raw' => array(
+                    'response' => $response,
+                    'headers' => $headers,
+                    'user_id' => $user_id,
+                    'instrument_code' => $instrument_code,
+                ),
+            );
+            CakeLog::write(LOG_ERROR, $error['message']);
+            throw new InternalErrorException($error['message']);
+            return false;
+        }
+
+        return json_decode($response, true);
+    }
+
     public function set_questionniare($user_id, $data){
 
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
@@ -314,5 +355,6 @@ class TruenthStrategy extends OpauthStrategy{
         }
         return $error;
     }
+
 
 }
