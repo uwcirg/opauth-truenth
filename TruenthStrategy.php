@@ -314,9 +314,10 @@ class TruenthStrategy extends OpauthStrategy{
     /**
      * Generic PUT
      */
-    public function put($url, $data){
+    public function put($url, $data, $access_token = null){
 
-        $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+        if ($access_token == null)
+            $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 
         $HttpSocket = new HttpSocket();
         $response = $HttpSocket->put(
@@ -381,7 +382,9 @@ class TruenthStrategy extends OpauthStrategy{
         $url = $this->strategy['base_url'] . "intervention/$interventionId";
         // https://truenth-dev.cirg.washington.edu/api/intervention/decision_support_p3p
 
-        return $this->put($url, $data);
+        $service_token = SERVICE_TOKEN;
+
+        return $this->put($url, $data, $service_token);
     }
 
 }
