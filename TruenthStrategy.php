@@ -311,18 +311,16 @@ class TruenthStrategy extends OpauthStrategy{
         return json_decode($response, true);
     }
 
-    public function set_questionniare($user_id, $data){
+    /**
+     * Generic PUT
+     */
+    public function put($url, $data){
 
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 
         $HttpSocket = new HttpSocket();
         $response = $HttpSocket->put(
-            implode(array(
-                $this->strategy['base_url'],
-                'patient', '/',
-                $user_id, '/',
-                'assessment',
-            )),
+            $url,
             json_encode($data),
             array(
                 'header' => array(
@@ -337,7 +335,7 @@ class TruenthStrategy extends OpauthStrategy{
         }
 
         $error = array(
-            'message' => 'Error submitting questionnaire response data',
+            'message' => "Error with PUT to $url",
             'code' => $response->code,
             'raw' => array(
                 'response' => $response,
@@ -345,7 +343,7 @@ class TruenthStrategy extends OpauthStrategy{
             ),
         );
 
-        CakeLog::write(LOG_ERROR, print_r($error,1));
+        CakeLog::write(LOG_ERROR, "Error in put(). URL: $url. Data: " . print_r($data, true) . ". Error: " . print_r($error,1));
 
         $this->errorCallback($error);
         switch ($response->code){
@@ -356,5 +354,34 @@ class TruenthStrategy extends OpauthStrategy{
         return $error;
     }
 
+    /**
+     *
+     */
+    public function set_questionniare($user_id, $data){
+
+        $url = implode(array(
+                $this->strategy['base_url'],
+                'patient', '/',
+                $user_id, '/',
+                'assessment',
+            ));
+
+        return $this->put($url, $data);
+    }
+
+    /**
+     * PUT Truenth status for user/intervention dyad
+     */
+    public function put_user_intervention($data){
+
+        $interventionId = 'self_management';
+        if (strpos(INSTANCE_ID, 'p3p') !== false)
+            $interventionId = 'decision_support_p3p';
+
+        $url = $this->strategy['base_url'] . "intervention/$interventionId";
+        // https://truenth-dev.cirg.washington.edu/api/intervention/decision_support_p3p
+
+        return $this->put($url, $data);
+    }
 
 }
