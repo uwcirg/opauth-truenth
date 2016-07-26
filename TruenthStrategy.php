@@ -375,14 +375,19 @@ class TruenthStrategy extends OpauthStrategy{
      */
     public function put_user_intervention($data){
 
+        if (empty(SERVICE_TOKEN)) {
+            CakeLog::write(LOG_ERROR, "Error in " . __FUNCTION__ . ": SERVICE_TOKEN is undefined.");
+            return;
+        }
+
+        $service_token = SERVICE_TOKEN;
+
         $interventionId = 'self_management';
         if (strpos(INSTANCE_ID, 'p3p') !== false)
             $interventionId = 'decision_support_p3p';
 
         $url = $this->strategy['base_url'] . "intervention/$interventionId";
         // https://truenth-dev.cirg.washington.edu/api/intervention/decision_support_p3p
-
-        $service_token = SERVICE_TOKEN;
 
         return $this->put($url, $data, $service_token);
     }
