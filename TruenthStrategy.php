@@ -375,7 +375,7 @@ class TruenthStrategy extends OpauthStrategy{
      */
     public function put_user_intervention($data){
 
-        if (empty(SERVICE_TOKEN)) {
+        if (strlen(SERVICE_TOKEN) == 0) {
             CakeLog::write(LOG_ERROR, "Error in " . __FUNCTION__ . ": SERVICE_TOKEN is undefined.");
             return;
         }
