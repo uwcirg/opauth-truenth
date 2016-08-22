@@ -104,8 +104,10 @@ class TruenthStrategy extends OpauthStrategy{
                 'redirect_uri' => $this->strategy['redirect_uri'],
                 'grant_type' => 'authorization_code'
             );
-            $response = $this->serverPost($url, $params, null, $headers);
 
+            set_error_handler(array($this, "serverPostHandler"), E_WARNING);
+            $response = $this->serverPost($url, $params, null, $headers);
+            restore_error_handler();
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), response serverPost:' . print_r($response, true));
 
             $results = json_decode($response);
@@ -158,6 +160,14 @@ class TruenthStrategy extends OpauthStrategy{
         }
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
     }// public function oauth2callback(){
+
+    /**
+     * Handler to catch warning generated during a logout edge case, and avoid redirection to cPRO login page (vs portal's) https://www.pivotaltracker.com/story/show/103820322
+     */
+    function serverPostHandler($errno, $errstr, $errfile, $errline){
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "(); errstr:$errstr, redirecting to " . Router::url("/", true));
+        self::redirect(Router::url("/", true));
+    }
 
     /**
      * Generic CS to intervention callback. Note that you'll need to write this function name to the CS's clients table's callback_url field, eg https://p3p-dev.cirg.washington.edu/usa-self-mgmt/auth/truenth/eventcallback
