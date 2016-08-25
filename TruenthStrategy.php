@@ -322,6 +322,57 @@ class TruenthStrategy extends OpauthStrategy{
     }
 
     /**
+     * Convenience method for serverPost()
+     * Includes OAuth headers by default
+     */
+    public function post($url, $data, $access_token = null){
+
+        if ($access_token === null)
+            $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+
+        $default_headers = array(
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $access_token,
+        );
+
+        $headers = array();
+        foreach($default_headers as $header => $value){
+            array_push($headers, "$header: $value");
+        }
+
+		$options = array('http' => array(
+            'method' => 'POST',
+            'header' => implode($headers, "\r\n"),
+            'content' => json_encode($data),
+        ));
+
+        $response = $this->httpRequest(
+            $url,
+            $options,
+            $response_headers
+        );
+
+        $results = json_decode($response);
+
+        if (
+            !property_exists($results, 'ok') or
+            $results->ok != true or
+
+            !property_exists($results, 'valid') or
+            $results->valid != true
+        ){
+            CakeLog::write(LOG_ERROR, __CLASS__ . '.' . __FUNCTION__ . '(), POST error; data:' . print_r($data, true));
+            CakeLog::write(LOG_ERROR, __CLASS__ . '.' . __FUNCTION__ . '(), response:' . print_r($response, true));
+            CakeLog::write(LOG_ERROR, __CLASS__ . '.' . __FUNCTION__ . '(), response headers:' . print_r($response_headers, true));
+
+            throw new InternalErrorException('Error POSTing to CS');
+        }
+
+        return $results;
+    }
+
+
+    /**
      * Generic PUT
      */
     public function put($url, $data, $access_token = null){
