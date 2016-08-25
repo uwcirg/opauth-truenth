@@ -428,7 +428,7 @@ class TruenthStrategy extends OpauthStrategy{
                 'assessment',
             ));
 
-        return $this->put($url, $data);
+        return $this->post($url, $data);
     }
 
     /**
