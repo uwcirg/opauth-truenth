@@ -430,6 +430,16 @@ class TruenthStrategy extends OpauthStrategy{
 
         return $this->post($url, $data);
     }
+    public function update_questionnaire_response($user_id, $data){
+        $url = implode(array(
+                $this->strategy['base_url'],
+                'patient', '/',
+                $user_id, '/',
+                'assessment',
+            ));
+
+        return $this->put($url, $data);
+    }
 
     /**
      * PUT Truenth status for user/intervention dyad
