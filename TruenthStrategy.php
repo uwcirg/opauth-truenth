@@ -326,6 +326,7 @@ class TruenthStrategy extends OpauthStrategy{
      * Includes OAuth headers by default
      */
     public function post($url, $data, $access_token = null){
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); url:' . $url . '; data:' . print_r($data, true));
 
         if ($access_token === null)
             $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
@@ -369,7 +370,7 @@ class TruenthStrategy extends OpauthStrategy{
         }
 
         return $results;
-    }
+    }// public function post
 
 
     /**
@@ -445,6 +446,7 @@ class TruenthStrategy extends OpauthStrategy{
      * PUT Truenth status for user/intervention dyad
      */
     public function put_user_intervention($data){
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . print_r($data, true));
 
         if (strlen(SERVICE_TOKEN) == 0) {
             CakeLog::write(LOG_ERROR, "Error in " . __FUNCTION__ . ": SERVICE_TOKEN is undefined.");
@@ -462,5 +464,60 @@ class TruenthStrategy extends OpauthStrategy{
 
         return $this->put($url, $data, $service_token);
     }
+
+    /**
+     * 
+     */
+    public function post_report($user_id, $filePath){
+
+        if ($access_token == null)
+            $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+/*
+        if (strlen(SERVICE_TOKEN) == 0) {
+            CakeLog::write(LOG_ERROR, "Error in " . __FUNCTION__ . ": SERVICE_TOKEN is undefined.");
+            return;
+        }
+
+        $service_token = SERVICE_TOKEN;
+ */
+        $url = implode(array(
+                $this->strategy['base_url'],
+                'user', '/',
+                $user_id, '/',
+                'patient_report',
+            ));
+
+        $fileSize = filesize($filePath);
+
+        if(!file_exists($filePath)) {
+                $out['status'] = 'error';
+                    $out['message'] = 'File not found.';
+                    exit(json_encode($out));
+        }
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $finfo = finfo_file($finfo, $filePath);
+
+        //using curl because, need to send the POST as multipart:form/data and include the attachment with a parameter name and a file name in the content disposition (these are all things that a browser does automatically, and curl -F emulates). Just sending the raw PDF data without those ingredients doesn't work.
+
+        $cFile = new CURLFile($filePath, $finfo, basename($filePath));
+        $data = array( "filedata" => $cFile, "filename" => $cFile->postname);
+
+        $cURL = curl_init($url);
+        curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
+
+        // This is not mandatory, but is a good practice.
+        curl_setopt($cURL, CURLOPT_HTTPHEADER,
+            array('Content-Type: multipart/form-data',
+                    "Authorization: Bearer $access_token"
+                    //"Authorization: Bearer $service_token"
+        ));
+        curl_setopt($cURL, CURLOPT_POST, true);
+        curl_setopt($cURL, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($cURL, CURLOPT_INFILESIZE, $fileSize);
+        
+        $response = curl_exec($cURL);
+        curl_close($cURL);
+    }// public function post_report($user_id, $filePath){
 
 }
