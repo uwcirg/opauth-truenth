@@ -470,8 +470,7 @@ class TruenthStrategy extends OpauthStrategy{
      */
     public function post_report($user_id, $filePath){
 
-        if ($access_token == null)
-            $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+        $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 /*
         if (strlen(SERVICE_TOKEN) == 0) {
             CakeLog::write(LOG_ERROR, "Error in " . __FUNCTION__ . ": SERVICE_TOKEN is undefined.");
@@ -515,8 +514,26 @@ class TruenthStrategy extends OpauthStrategy{
         curl_setopt($cURL, CURLOPT_POST, true);
         curl_setopt($cURL, CURLOPT_POSTFIELDS, $data);
         curl_setopt($cURL, CURLOPT_INFILESIZE, $fileSize);
-        
+        curl_setopt($cURL, CURLINFO_HEADER_OUT, true);
+
         $response = curl_exec($cURL);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); response from server:' . print_r($response, true));
+        $httpcode = curl_getinfo($cURL, CURLINFO_HTTP_CODE);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); response code from server:' . print_r($httpcode, true));
+        $header_out = curl_getinfo($cURL, CURLINFO_HEADER_OUT);
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '();  CURLINFO_HEADER_OUT:' . print_r($header_out, true));
+        if ($httpcode != 200){
+            $error = array(
+                'code' => 'pro_report_error',
+                'message' => 'Failed when attempting to store PRO report',
+                'raw' => array(
+                    'response' => $response,
+                    'headers' => $curl_getinfo($cURL, CURLINFO_HEADER_OUT)
+                )
+            );
+
+            $this->errorCallback($error);
+        }
         curl_close($cURL);
     }// public function post_report($user_id, $filePath){
 
