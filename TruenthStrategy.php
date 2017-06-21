@@ -528,10 +528,10 @@ class TruenthStrategy extends OpauthStrategy{
                 'message' => 'Failed when attempting to store PRO report',
                 'raw' => array(
                     'response' => $response,
-                    'headers' => $curl_getinfo($cURL, CURLINFO_HEADER_OUT)
+                    'headers' => curl_getinfo($cURL, CURLINFO_HEADER_OUT)
                 )
             );
-
+            CakeLog::write(LOG_ERROR, __CLASS__ . '.' . __FUNCTION__ . '(); error:' . print_r($error, true));
             $this->errorCallback($error);
         }
         curl_close($cURL);
