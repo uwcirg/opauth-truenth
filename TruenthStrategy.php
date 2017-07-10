@@ -318,7 +318,6 @@ class TruenthStrategy extends OpauthStrategy{
         }
 
 
-        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(...), here\'s request for serverGet: ' . print_r($url, true));
         $response = @$this->serverGet(
             implode($url),
             array('access_token' => $access_token),
