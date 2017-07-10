@@ -280,6 +280,29 @@ class TruenthStrategy extends OpauthStrategy{
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
     }
 
+    /**
+     * Queries Truenth settings API
+     * @param $settingName eg 'LR_ORIGIN'
+     * @return JSON results
+     */
+    public function get_settings($settingName) {
+        $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
+        $url = array(
+            $this->strategy['base_url'],
+            'settings/',
+            $settingName
+        );
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(...), here\'s request for serverGet: ' . print_r($url, true));
+        $response = @$this->serverGet(
+            implode($url),
+            array('access_token' => $access_token),
+            null,
+            $headers
+        );
+        //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(...), here\'s response from serverGet: ' . print_r($response, true));
+        return json_decode($response, true);
+    }
+
     public function get_questionniare_responses($user_id, $instrument_code=null){
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 
@@ -295,6 +318,7 @@ class TruenthStrategy extends OpauthStrategy{
         }
 
 
+        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(...), here\'s request for serverGet: ' . print_r($url, true));
         $response = @$this->serverGet(
             implode($url),
             array('access_token' => $access_token),
