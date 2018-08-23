@@ -443,7 +443,7 @@ class TruenthStrategy extends OpauthStrategy{
     /**
      *
      */
-    public function add_questionnaire_response($user_id, $data){
+    public function add_questionnaire_response($user_id, $data, $entry_method=null){
 
         $url = implode(array(
                 $this->strategy['base_url'],
@@ -451,16 +451,24 @@ class TruenthStrategy extends OpauthStrategy{
                 $user_id, '/',
                 'assessment',
             ));
+
+        if ($entry_method){
+            $url .= "?entry_method=$entry_method";
+        }
 
         return $this->post($url, $data);
     }
-    public function update_questionnaire_response($user_id, $data){
+    public function update_questionnaire_response($user_id, $data, $entry_method=null){
         $url = implode(array(
                 $this->strategy['base_url'],
                 'patient', '/',
                 $user_id, '/',
                 'assessment',
             ));
+
+        if ($entry_method){
+            $url .= "?entry_method=$entry_method";
+        }
 
         return $this->put($url, $data);
     }
