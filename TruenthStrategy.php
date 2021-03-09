@@ -184,10 +184,13 @@ class TruenthStrategy extends OpauthStrategy{
             [algorithm] => HMAC-SHA256
         */
 
+        CakeLog::write(LOG_DEBUG, "Received event from TrueNTH portal: ${data['event']}");
+
         if ($data['event'] == 'logout'){
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data[event] == "logout"');
             $sessionObj = new DatabaseSessionPlusUserId();
             $deleteResult = $sessionObj->deleteByUserId($data['user_id']);
+            CakeLog::write(LOG_DEBUG, "Event-triggered logout complete");
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "(); just did logout, heres deleteResult: $deleteResult");
          }
         //else CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data[event] != "logout"');
@@ -349,7 +352,7 @@ class TruenthStrategy extends OpauthStrategy{
      * Includes OAuth headers by default
      */
     public function post($url, $data, $access_token = null){
-        CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); url:' . $url . '; data:' . print_r($data, true));
+        // CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); url:' . $url . '; data:' . print_r($data, true));
 
         if ($access_token === null)
             $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
