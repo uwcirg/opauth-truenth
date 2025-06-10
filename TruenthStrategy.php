@@ -18,48 +18,52 @@
  */
 App::uses('HttpSocket', 'Network/Http');
 App::uses('DatabaseSessionPlusUserId', 'Datasource/Session');
-class TruenthStrategy extends OpauthStrategy{
 
+class TruenthStrategy extends OpauthStrategy
+{
     /**
      * Compulsory config keys, listed as unassociative arrays
      */
-    public $expects = array('authorize_url', 'access_token_url',
-            'base_url', 'client_id', 'client_secret');
+    public array $expects = ['authorize_url', 'access_token_url',
+            'base_url', 'client_id', 'client_secret'];
 
     /**
      * Optional config keys, without predefining any default values.
      */
-    public $optionals = array('redirect_uri', 'scope', 'state', 'access_type', 'approval_prompt');
+    public array $optionals = ['redirect_uri', 'scope', 'state', 'access_type', 'approval_prompt'];
 
     /**
      * Optional config keys with respective default values, listed as associative arrays
      * eg. array('scope' => 'email');
      */
-    public $defaults = array(
+    public array $defaults = [
         'redirect_uri' => '{complete_url_to_strategy}oauth2callback',
         'scope' => 'email'
-    );
+    ];
 
-    public $hasRefresh = true;
+    public bool $hasRefresh = true;
 
     /**
      * Auth request
      */
-    public function request(){
+    public function request(): void
+    {
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
 
         $url = $this->strategy['authorize_url'];
-        $params = array(
+        $params = [
             'client_id' => $this->strategy['client_id'],
             'redirect_uri' => $this->strategy['redirect_uri'],
             //'next' => Router::url("/", true),
             'response_type' => 'code',
             'scope' => $this->strategy['scope']
-        );
+        ];
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); url: ' . $url . '; params for strategy: ' . print_r($params, true));
 
-        foreach ($this->optionals as $key){
-            if (!empty($this->strategy[$key])) $params[$key] = $this->strategy[$key];
+        foreach ($this->optionals as $key) {
+            if (!empty($this->strategy[$key])) {
+                $params[$key] = $this->strategy[$key];
+            }
         }
 
         $this->clientGet($url, $params);
@@ -69,8 +73,9 @@ class TruenthStrategy extends OpauthStrategy{
     /**
      * Validate signed requests from central services and return JSON data if valid
      */
-    public static function validate_request($signed_request){
-        list($encoded_sig, $encoded_data) = explode('.', $signed_request);
+    public static function validate_request(string $signed_request): array|false
+    {
+        [$encoded_sig, $encoded_data] = explode('.', $signed_request);
 
         $decoded_data = base64_decode(strtr($encoded_data, '-_', '+/'));
 
@@ -82,7 +87,7 @@ class TruenthStrategy extends OpauthStrategy{
         );
         $correct_encoded_sig = strtr(base64_encode($correct_decoded_sig), '+/', '-_');
 
-        if ($correct_encoded_sig !== $encoded_sig){
+        if ($correct_encoded_sig !== $encoded_sig) {
             CakeLog::write(LOG_ERROR, 'Request signature invalid');
             return false;
         }
@@ -92,20 +97,21 @@ class TruenthStrategy extends OpauthStrategy{
     /**
      * Internal callback, after OAuth
      */
-    public function oauth2callback(){
+    public function oauth2callback(): void
+    {
         // CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
-        if (array_key_exists('code', $_GET) && !empty($_GET['code'])){
+        if (array_key_exists('code', $_GET) && !empty($_GET['code'])) {
             $code = $_GET['code'];
             $url = $this->strategy['access_token_url'];
-            $params = array(
+            $params = [
                 'code' => $code,
                 'client_id' => $this->strategy['client_id'],
                 'client_secret' => $this->strategy['client_secret'],
                 'redirect_uri' => $this->strategy['redirect_uri'],
                 'grant_type' => 'authorization_code'
-            );
+            ];
 
-            set_error_handler(array($this, "serverPostHandler"), E_WARNING);
+            set_error_handler([$this, "serverPostHandler"], E_WARNING);
             $response = $this->serverPost($url, $params, null, $headers);
             restore_error_handler();
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), response serverPost:' . print_r($response, true));
@@ -114,66 +120,64 @@ class TruenthStrategy extends OpauthStrategy{
 
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), results from json_decode(response):' . print_r($results, true));
 
-            if (!empty($results) && !empty($results->access_token)){
+            if (!empty($results) && !empty($results->access_token)) {
                 //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), !empty($results) && !empty($results->access_token)');
                 CakeSession::write('OPAUTH_ACCESS_TOKEN', $results->access_token);
                 $userinfo = $this->userinfo($results->access_token);
                 //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), userinfo:' . print_r($userinfo, true));
 
-                $this->auth = array(
+                $this->auth = [
                     'uid' => $userinfo['id'],
-                    'info' => array(),
-                    'credentials' => array(
+                    'info' => [],
+                    'credentials' => [
                         'token' => $results->access_token,
                         'expires' => date('c', time() + $results->expires_in)
-                    ),
+                    ],
                     'raw' => $userinfo
-                );
+                ];
 
-                if (!empty($results->refresh_token))
-                {
+                if (!empty($results->refresh_token)) {
                     $this->auth['credentials']['refresh_token'] = $results->refresh_token;
                 }
 
                 $this->callback();
-            }
-            else{
-                $error = array(
+            } else {
+                $error = [
                     'code' => 'access_token_error',
                     'message' => 'Failed when attempting to obtain access token',
-                    'raw' => array(
+                    'raw' => [
                         'response' => $response,
                         'headers' => $headers
-                    )
-                );
+                    ]
+                ];
 
                 $this->errorCallback($error);
             }
-        }
-        else{
-            $error = array(
+        } else {
+            $error = [
                 'code' => 'oauth2callback_error',
                 'raw' => $_GET
-            );
+            ];
 
             $this->errorCallback($error);
         }
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
-    }// public function oauth2callback(){
+    }
 
     /**
      * Handler to catch warning generated during a logout edge case, and avoid redirection to cPRO login page (vs portal's) https://www.pivotaltracker.com/story/show/103820322
      */
-    function serverPostHandler($errno, $errstr, $errfile, $errline){
+    public function serverPostHandler(int $errno, string $errstr, string $errfile, int $errline): void
+    {
         CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "(); errstr:$errstr, redirecting to " . Router::url("/", true));
         self::redirect(Router::url("/", true));
     }
 
     /**
-     * Generic CS to intervention callback. Note that you'll need to write this function name to the CS's clients table's callback_url field, eg https://p3p-dev.cirg.washington.edu/usa-self-mgmt/auth/truenth/eventcallback
+     * Generic CS to intervention callback. Note that you'll need to write this function name to the CS's clients table's callback_url field, eg https://p3p-dev.cirg.washington.edu/usa-self-mgmt/auth/truenth/eventcallback 
      */
-    public function eventcallback(){
-
+    public function eventcallback(): void
+    {
         $data = self::validate_request($_POST['signed_request']);
 
         // CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data after json_decode:' . print_r($data, true));
@@ -184,19 +188,19 @@ class TruenthStrategy extends OpauthStrategy{
             [algorithm] => HMAC-SHA256
         */
 
-        CakeLog::write(LOG_DEBUG, "Received event from TrueNTH portal: ${data['event']}");
+        CakeLog::write(LOG_DEBUG, "Received event from TrueNTH portal: {$data['event']}");
 
-        if ($data['event'] == 'logout'){
+        if ($data['event'] == 'logout') {
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data[event] == "logout"');
             $sessionObj = new DatabaseSessionPlusUserId();
             $deleteResult = $sessionObj->deleteByUserId($data['user_id']);
             CakeLog::write(LOG_DEBUG, "Event-triggered logout complete");
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "(); just did logout, heres deleteResult: $deleteResult");
-         }
+        }
         //else CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data[event] != "logout"');
 
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); done.');
-    }// public function eventcallback
+    }
 
     /**
      * Queries Truenth API for user info
@@ -204,24 +208,25 @@ class TruenthStrategy extends OpauthStrategy{
      * @param string $access_token
      * @return array Parsed JSON results
      */
-    private function userinfo($access_token){
+    private function userinfo(string $access_token): array
+    {
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), just entered');
-        $userinfo = $this->serverGet($this->strategy['base_url'] . 'me', array('access_token' => $access_token), null, $headers); // 'me' from flask; google uses this naming convention, as do others.
-        if (!empty($userinfo)){
+        $userinfo = $this->serverGet($this->strategy['base_url'] . 'me', ['access_token' => $access_token], null, $headers); // 'me' from flask; google uses this naming convention, as do others.
+        if (!empty($userinfo)) {
             return $this->recursiveGetObjectVars(json_decode($userinfo));
         }
-        else{
-            $error = array(
-                'code' => 'userinfo_error',
-                'message' => 'Failed when attempting to query for user information',
-                'raw' => array(
-                    'response' => $userinfo,
-                    'headers' => $headers
-                )
-            );
+        
+        $error = [
+            'code' => 'userinfo_error',
+            'message' => 'Failed when attempting to query for user information',
+            'raw' => [
+                'response' => $userinfo,
+                'headers' => $headers
+            ]
+        ];
 
-            $this->errorCallback($error);
-        }
+        $this->errorCallback($error);
+        return [];
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), done');
     }
 
@@ -259,7 +264,8 @@ class TruenthStrategy extends OpauthStrategy{
      * @param $apiName eg 'demographics' | 'patient/123/procedure'
      * @return JSON results
      */
-    public function coreData($apiName){
+    public function coreData($apiName): string
+    {
         //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . "($apiName)");
 
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
@@ -306,7 +312,8 @@ class TruenthStrategy extends OpauthStrategy{
         return json_decode($response, true);
     }
 
-    public function get_questionniare_responses($user_id, $instrument_code=null){
+    public function get_questionniare_responses($user_id, $instrument_code=null): array|false
+    {
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 
         $url = array(
@@ -351,7 +358,8 @@ class TruenthStrategy extends OpauthStrategy{
      * Convenience method for serverPost()
      * Includes OAuth headers by default
      */
-    public function post($url, $data, $access_token = null){
+    public function post($url, $data, $access_token = null): object
+    {
         // CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); url:' . $url . '; data:' . print_r($data, true));
 
         if ($access_token === null)
@@ -396,14 +404,13 @@ class TruenthStrategy extends OpauthStrategy{
         }
 
         return $results;
-    }// public function post
-
+    }
 
     /**
      * Generic PUT
      */
-    public function put($url, $data, $access_token = null){
-
+    public function put($url, $data, $access_token = null): array
+    {
         if ($access_token == null)
             $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 
@@ -446,8 +453,8 @@ class TruenthStrategy extends OpauthStrategy{
     /**
      *
      */
-    public function add_questionnaire_response($user_id, $data, $entry_method=null){
-
+    public function add_questionnaire_response($user_id, $data, $entry_method=null): object
+    {
         $url = implode(array(
                 $this->strategy['base_url'],
                 'patient', '/',
@@ -461,7 +468,9 @@ class TruenthStrategy extends OpauthStrategy{
 
         return $this->post($url, $data);
     }
-    public function update_questionnaire_response($user_id, $data, $entry_method=null){
+
+    public function update_questionnaire_response($user_id, $data, $entry_method=null): array
+    {
         $url = implode(array(
                 $this->strategy['base_url'],
                 'patient', '/',
@@ -479,7 +488,8 @@ class TruenthStrategy extends OpauthStrategy{
     /**
      * PUT Truenth status for user/intervention dyad
      */
-    public function put_user_intervention($data){
+    public function put_user_intervention($data): void
+    {
         CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(); data:' . print_r($data, true));
 
         if (strlen(SERVICE_TOKEN) == 0) {
@@ -496,14 +506,14 @@ class TruenthStrategy extends OpauthStrategy{
         $url = $this->strategy['base_url'] . "intervention/$interventionId";
         // https://truenth-dev.cirg.washington.edu/api/intervention/decision_support_p3p
 
-        return $this->put($url, $data, $service_token);
+        $this->put($url, $data, $service_token);
     }
 
     /**
      * 
      */
-    public function post_report($user_id, $filePath){
-
+    public function post_report($user_id, $filePath): void
+    {
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 /*
         if (strlen(SERVICE_TOKEN) == 0) {
@@ -569,6 +579,5 @@ class TruenthStrategy extends OpauthStrategy{
             $this->errorCallback($error);
         }
         curl_close($cURL);
-    }// public function post_report($user_id, $filePath){
-
+    }
 }
