@@ -24,7 +24,7 @@ class TruenthStrategy extends OpauthStrategy
     /**
      * Compulsory config keys, listed as unassociative arrays
      */
-    public array $expects = ['authorize_url', 'access_token_url',
+    public ?array $expects = ['authorize_url', 'access_token_url',
             'base_url', 'client_id', 'client_secret'];
 
     /**
@@ -36,7 +36,7 @@ class TruenthStrategy extends OpauthStrategy
      * Optional config keys with respective default values, listed as associative arrays
      * eg. array('scope' => 'email');
      */
-    public array $defaults = [
+    public ?array $defaults = [
         'redirect_uri' => '{complete_url_to_strategy}oauth2callback',
         'scope' => 'email'
     ];
