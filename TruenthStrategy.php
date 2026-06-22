@@ -24,7 +24,7 @@ class TruenthStrategy extends OpauthStrategy
     /**
      * Compulsory config keys, listed as unassociative arrays
      */
-    public array $expects = ['authorize_url', 'access_token_url',
+    public ?array $expects = ['authorize_url', 'access_token_url',
             'base_url', 'client_id', 'client_secret'];
 
     /**
@@ -36,7 +36,7 @@ class TruenthStrategy extends OpauthStrategy
      * Optional config keys with respective default values, listed as associative arrays
      * eg. array('scope' => 'email');
      */
-    public array $defaults = [
+    public ?array $defaults = [
         'redirect_uri' => '{complete_url_to_strategy}oauth2callback',
         'scope' => 'email'
     ];
@@ -72,8 +72,10 @@ class TruenthStrategy extends OpauthStrategy
 
     /**
      * Validate signed requests from central services and return JSON data if valid
+     *
+     * @return array|false
      */
-    public static function validate_request(string $signed_request): array|false
+    public static function validate_request(string $signed_request)
     {
         [$encoded_sig, $encoded_data] = explode('.', $signed_request);
 
@@ -112,7 +114,7 @@ class TruenthStrategy extends OpauthStrategy
             ];
 
             set_error_handler([$this, "serverPostHandler"], E_WARNING);
-            $response = $this->serverPost($url, $params, null, $headers);
+            $response = $this->serverPost($url, $params, [], $headers);
             restore_error_handler();
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), response serverPost:' . print_r($response, true));
 
@@ -312,7 +314,10 @@ class TruenthStrategy extends OpauthStrategy
         return json_decode($response, true);
     }
 
-    public function get_questionniare_responses($user_id, $instrument_code=null): array|false
+    /**
+     * @return array|false
+     */
+    public function get_questionniare_responses($user_id, $instrument_code = null)
     {
         $access_token = CakeSession::read('OPAUTH_ACCESS_TOKEN');
 
