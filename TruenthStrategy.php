@@ -114,7 +114,7 @@ class TruenthStrategy extends OpauthStrategy
             ];
 
             set_error_handler([$this, "serverPostHandler"], E_WARNING);
-            $response = $this->serverPost($url, $params, null, $headers);
+            $response = $this->serverPost($url, $params, [], $headers);
             restore_error_handler();
             //CakeLog::write(LOG_DEBUG, __CLASS__ . '.' . __FUNCTION__ . '(), response serverPost:' . print_r($response, true));
 
